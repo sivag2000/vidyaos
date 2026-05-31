@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VidyaOS - AI Study Companion & Personalized Learning Platform</title>
+  <meta name="description" content="AI-Powered Personalized Learning Platform and Study OS for Indian Students. Solve doubts instantly, take mock tests, and track progress.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Premium Glassmorphism Login Screen -->
+  <div id="loginScreen" class="login-container">
+    <div class="login-card glass-panel" role="main" aria-label="VidyaOS Authentication">
+      <div class="login-logo">
+        <div class="logo-icon" style="background: linear-gradient(135deg, var(--accent-indigo), var(--accent-purple)); width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 12px auto; box-shadow: var(--glow-shadow);">🎓</div>
+        <h2>VidyaOS</h2>
+        <p>Your AI Learning Operating System</p>
+      </div>
+
+      <!-- Auth Tab Selectors -->
+      <div class="auth-tabs" role="tablist" style="display: flex; gap: 10px; margin-bottom: 24px; border-bottom: 1px solid var(--glass-border); padding-bottom: 8px;">
+        <button id="tab-login" class="auth-tab active" role="tab" aria-selected="true" aria-controls="form-login-panel" style="flex: 1; background: transparent; border: none; color: var(--text-main); font-family: var(--font-display); font-weight: 700; font-size: 16px; padding: 8px; cursor: pointer; transition: var(--transition-smooth); border-bottom: 2px solid var(--accent-indigo);">Sign In</button>
+        <button id="tab-signup" class="auth-tab" role="tab" aria-selected="false" aria-controls="form-signup-panel" style="flex: 1; background: transparent; border: none; color: var(--text-muted); font-family: var(--font-display); font-weight: 600; font-size: 16px; padding: 8px; cursor: pointer; transition: var(--transition-smooth); border-bottom: 2px solid transparent;">Register</button>
+      </div>
+      
+      <!-- Login Panel -->
+      <form id="form-login-panel" role="tabpanel" aria-labelledby="tab-login" novalidate style="display: flex; flex-direction: column; gap: 16px;">
+        <div class="login-form-group">
+          <label for="login-identity">Email or Username</label>
+          <input type="text" id="login-identity" class="form-input" autocomplete="username" required aria-required="true" style="width: 100%;" placeholder="rohan@vidyaos.edu.in">
+          <span class="error-msg" id="login-identity-err" aria-live="polite" style="color: var(--accent-red); font-size: 11px; margin-top: 4px; display: block; text-align: left;"></span>
+        </div>
+
+        <div class="login-form-group">
+          <label for="login-password">Password</label>
+          <div class="password-input-wrapper" style="position: relative; display: flex; align-items: center; width: 100%;">
+            <input type="password" id="login-password" class="form-input" autocomplete="current-password" required aria-required="true" style="width: 100%; padding-right: 40px;" placeholder="••••••••">
+            <button type="button" class="password-toggle-btn" aria-label="Show password" style="position: absolute; right: 10px; background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; line-height: 1;">👁️</button>
+          </div>
+          <span class="error-msg" id="login-password-err" aria-live="polite" style="color: var(--accent-red); font-size: 11px; margin-top: 4px; display: block; text-align: left;"></span>
+        </div>
+
+        <div class="login-form-options" style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; margin-top: 4px;">
+          <label class="checkbox-label" style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text-muted);">
+            <input type="checkbox" id="login-remember" style="cursor: pointer;"> Remember Me (30 Days)
+          </label>
+          <button type="button" id="forgot-password-link" class="text-link-btn" style="background: transparent; border: none; color: var(--accent-indigo); cursor: pointer; font-weight: 600; text-decoration: none;">Forgot Password?</button>
+        </div>
+
+        <!-- Captcha Section (Shown after 3 failed attempts) -->
+        <div id="captcha-block" style="display: none; flex-direction: column; gap: 6px; text-align: left;">
+          <label for="captcha-input" id="captcha-question-label" style="font-size: 12px; font-weight: 600; color: var(--accent-orange);">⚠️ Math CAPTCHA: Solve 5 + 3</label>
+          <input type="text" id="captcha-input" class="form-input" required placeholder="Your answer" style="width: 100%;">
+          <span class="error-msg" id="captcha-err" aria-live="polite" style="color: var(--accent-red); font-size: 11px; margin-top: 4px; display: block;"></span>
+        </div>
+
+        <!-- Lockout Alert (Shown after 5 failed attempts) -->
+        <div id="lockout-block" class="info-alert" style="display: none; background: rgba(239, 68, 68, 0.1); border-color: var(--accent-red); color: var(--accent-red); padding: 12px; border-radius: 8px; font-size: 13px; text-align: left;">
+          ⚠️ Account temporarily locked. Please wait <span id="lockout-timer" style="font-weight:700;">30</span>s.
+        </div>
+
+        <button type="submit" id="login-submit-btn" class="primary-btn" style="width: 100%; margin-top: 12px; font-size: 16px; padding: 14px;">Sign In</button>
+
+        <!-- Quick Fill Helper (Development Only) -->
+        <div class="quick-fill-helper" style="margin-top: 16px; text-align: left; display: flex; flex-direction: column; gap: 8px; border-top: 1px dashed var(--glass-border); padding-top: 12px;">
+          <span style="font-size: 11px; color: var(--text-dim); font-weight: 600; text-transform: uppercase;">⚡ Quick Fill Credentials</span>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            <button type="button" class="sso-btn" id="fill-student" style="padding: 6px 10px; font-size: 11px; flex: 1; min-width: 100px; background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); color: var(--text-main); border-radius: 6px; cursor: pointer;">Student</button>
+            <button type="button" class="sso-btn" id="fill-parent" style="padding: 6px 10px; font-size: 11px; flex: 1; min-width: 100px; background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); color: var(--text-main); border-radius: 6px; cursor: pointer;">Parent</button>
+            <button type="button" class="sso-btn" id="fill-teacher" style="padding: 6px 10px; font-size: 11px; flex: 1; min-width: 100px; background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); color: var(--text-main); border-radius: 6px; cursor: pointer;">Teacher</button>
+          </div>
+        </div>
+      </form>
+
+      <!-- Sign Up Panel (Hidden by default) -->
+      <form id="form-signup-panel" role="tabpanel" aria-labelledby="tab-signup" novalidate style="display: none; flex-direction: column; gap: 16px;">
+        <div class="login-form-group">
+          <label for="signup-username">Username</label>
+          <input type="text" id="signup-username" class="form-input" autocomplete="username" required style="width: 100%;" placeholder="e.g. rohan_sharma">
+          <span class="error-msg" id="signup-username-err" aria-live="polite" style="color: var(--accent-red); font-size: 11px; margin-top: 4px; display: block; text-align: left;"></span>
+        </div>
+
+        <div class="login-form-group">
+          <label for="signup-email">Email Address</label>
+          <input type="email" id="signup-email" class="form-input" autocomplete="email" required style="width: 100%;" placeholder="user@domain.com">
+          <span class="error-msg" id="signup-email-err" aria-live="polite" style="color: var(--accent-red); font-size: 11px; margin-top: 4px; display: block; text-align: left;"></span>
+        </div>
+
+        <div class="login-form-group">
+          <label for="signup-phone">Phone Number (Optional for 2FA)</label>
+          <input type="tel" id="signup-phone" class="form-input" autocomplete="tel" style="width: 100%;" placeholder="e.g. +91 98765 43210">
+          <span class="error-msg" id="signup-phone-err" aria-live="polite" style="color: var(--accent-red); font-size: 11px; margin-top: 4px; display: block; text-align: left;"></span>
+        </div>
+
+        <div class="login-form-group">
+          <label for="signup-password">Password</label>
+          <div class="password-input-wrapper" style="position: relative; display: flex; align-items: center; width: 100%;">
+            <input type="password" id="signup-password" class="form-input" autocomplete="new-password" required style="width: 100%; padding-right: 40px;" placeholder="Create secure password">
+            <button type="button" class="password-toggle-btn" aria-label="Show password" style="position: absolute; right: 10px; background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; line-height: 1;">👁️</button>
+          </div>
+          
+          <!-- Live Password Checklist -->
+          <div class="password-checklist" style="text-align: left; font-size: 11px; margin-top: 8px; display: flex; flex-direction: column; gap: 4px; color: var(--text-muted);">
+            <div class="check-item" id="chk-len" style="transition: var(--transition-smooth);">❌ At least 9 characters</div>
+            <div class="check-item" id="chk-upper" style="transition: var(--transition-smooth);">❌ At least one uppercase letter (A-Z)</div>
+            <div class="check-item" id="chk-lower" style="transition: var(--transition-smooth);">❌ At least one lowercase letter (a-z)</div>
+            <div class="check-item" id="chk-num" style="transition: var(--transition-smooth);">❌ At least one number (0-9)</div>
+            <div class="check-item" id="chk-spec" style="transition: var(--transition-smooth);">❌ At least one special character (!@#$%^&*)</div>
+            <div class="check-item" id="chk-space" style="transition: var(--transition-smooth);">❌ No spaces allowed</div>
+          </div>
+
+          <!-- Password Strength Meter -->
+          <div class="strength-meter" style="display: flex; gap: 4px; height: 6px; margin-top: 10px; border-radius: 3px; overflow: hidden; background: rgba(255,255,255,0.05);">
+            <div class="strength-segment" id="seg-1" style="flex: 1; transition: var(--transition-smooth); background: transparent;"></div>
+            <div class="strength-segment" id="seg-2" style="flex: 1; transition: var(--transition-smooth); background: transparent;"></div>
+            <div class="strength-segment" id="seg-3" style="flex: 1; transition: var(--transition-smooth); background: transparent;"></div>
+            <div class="strength-segment" id="seg-4" style="flex: 1; transition: var(--transition-smooth); background: transparent;"></div>
+          </div>
+          <div id="strength-label" class="strength-label" style="text-align: left; font-size: 11px; font-weight: 700; margin-top: 4px; color: var(--text-dim);">Password Strength: Empty</div>
+          <span class="error-msg" id="signup-password-err" aria-live="polite" style="color: var(--accent-red); font-size: 11px; margin-top: 4px; display: block; text-align: left;"></span>
+        </div>
+
+        <div class="login-form-group">
+          <label for="signup-role">Select Workspace Role</label>
+          <select id="signup-role" class="form-select" style="width: 100%;">
+            <option value="student">👤 Student Workspace</option>
+            <option value="parent">👪 Parent Tracking Portal</option>
+            <option value="teacher">🏫 Teacher Classroom Console</option>
+          </select>
+        </div>
+
+        <div class="login-form-group">
+          <label for="signup-class">Class / Grade</label>
+          <select id="signup-class" class="form-select" style="width: 100%;">
+            <option value="Class 10-A">Class 10-A</option>
+            <option value="Class 10-B">Class 10-B</option>
+            <option value="Class 9-A">Class 9-A</option>
+          </select>
+        </div>
+
+        <div class="login-form-group">
+          <label for="signup-board">Board</label>
+          <select id="signup-board" class="form-select" style="width: 100%;">
+            <option value="CBSE">CBSE</option>
+          </select>
+        </div>
+
+        <div class="login-form-group">
+          <label for="signup-academic-year">Academic Year</label>
+          <select id="signup-academic-year" class="form-select" style="width: 100%;">
+            <option value="2026-27">2026-27</option>
+            <option value="2025-26">2025-26</option>
+          </select>
+        </div>
+
+        <button type="submit" id="signup-submit-btn" class="primary-btn" style="width: 100%; margin-top: 12px; font-size: 16px; padding: 14px;">Create Account</button>
+      </form>
+
+      <!-- SSO Block -->
+      <div class="sso-divider" style="display: flex; align-items: center; text-align: center; color: var(--text-dim); font-size: 11px; margin: 24px 0 16px 0;">
+        <span style="flex:1; height:1px; background:var(--glass-border);"></span>
+        <span style="padding: 0 10px; font-weight:600; text-transform:uppercase;">Or continue with SSO</span>
+        <span style="flex:1; height:1px; background:var(--glass-border);"></span>
+      </div>
+      <div class="sso-buttons" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+        <button type="button" class="sso-btn" id="sso-google" aria-label="Sign in with Google" style="background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); color: var(--text-main); font-family: inherit; font-size: 12px; font-weight: 600; padding: 10px 0; border-radius: 8px; cursor: pointer; transition: var(--transition-smooth); display: flex; align-items: center; justify-content: center; gap: 6px;">🌐 Google</button>
+        <button type="button" class="sso-btn" id="sso-apple" aria-label="Sign in with Apple" style="background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); color: var(--text-main); font-family: inherit; font-size: 12px; font-weight: 600; padding: 10px 0; border-radius: 8px; cursor: pointer; transition: var(--transition-smooth); display: flex; align-items: center; justify-content: center; gap: 6px;">🍎 Apple</button>
+        <button type="button" class="sso-btn" id="sso-github" aria-label="Sign in with GitHub" style="background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); color: var(--text-main); font-family: inherit; font-size: 12px; font-weight: 600; padding: 10px 0; border-radius: 8px; cursor: pointer; transition: var(--transition-smooth); display: flex; align-items: center; justify-content: center; gap: 6px;">🐙 GitHub</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="appShell" class="app-container role-student" style="display: none;">
+    
+    <!-- Top Global Header -->
+    <header>
+      <div class="logo-area">
+        <div class="logo-icon">🎓</div>
+        <div>
+          <span class="logo-text">VidyaOS</span>
+          <span class="logo-badge">AI STUDY OS</span>
+        </div>
+      </div>
+      
+      <!-- Stats indicators (changes based on active role) -->
+      <div class="header-stats">
+        <!-- Student Stats -->
+        <div class="stat-chip streak-chip student-only" title="Your Daily Study Streak">
+          <span class="streak-flame">🔥</span>
+          <span id="streakCount">5</span> Day Streak
+        </div>
+        <div class="stat-chip xp-chip student-only" title="Experience Points">
+          <span>✨</span>
+          <span id="xpCount">2450</span> XP
+          <span class="level-badge" id="levelCount">Lvl 4</span>
+        </div>
+        
+        <!-- Parent Info -->
+        <div class="stat-chip xp-chip parent-only" style="background: rgba(168, 85, 247, 0.1); border-color: rgba(168, 85, 247, 0.2); color: var(--accent-purple);">
+          <span>👪</span> Parent Portal: <strong>Rohan's Progress</strong>
+        </div>
+        
+        <!-- Teacher Info -->
+        <div class="stat-chip xp-chip teacher-only" style="background: rgba(34, 197, 94, 0.1); border-color: rgba(34, 197, 94, 0.2); color: var(--accent-green);">
+          <span>🏫</span> Teacher Desk: <strong>Ms. Sharma</strong>
+        </div>
+
+        <!-- Role Selector Switcher -->
+        <div class="role-switcher">
+          <button class="role-btn" id="roleSwitcherBtn" type="button" aria-haspopup="true" aria-expanded="false">
+            <span id="activeRoleLabel">👤 Student Mode</span> ▾
+          </button>
+          <div class="role-dropdown" id="roleDropdown">
+            <div class="role-opt active" data-role="student">👤 Student Mode</div>
+            <div class="role-opt" data-role="parent">👪 Parent Mode</div>
+            <div class="role-opt" data-role="teacher">🏫 Teacher Mode</div>
+          </div>
+        </div>
+
+        <!-- Sign Out Button -->
+        <button id="logoutBtn" class="role-btn" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: var(--accent-red);">🚪 Sign Out</button>
+      </div>
+    </header>
+
+    <!-- Unified Shell Layout -->
+    <div class="layout-body">
+      
+      <!-- Sidebar Navigation Menu -->
+      <aside aria-label="Workspace navigation">
+        <!-- Student Sidebar Links -->
+        <div class="sidebar-link active student-only" data-target="student-dash">
+          <span class="sidebar-link-icon">🏠</span> Dashboard
+        </div>
+        <div class="sidebar-link student-only" data-target="student-tutor">
+          <span class="sidebar-link-icon">🤖</span> AI Study Tutor
+        </div>
+        <div class="sidebar-link student-only" data-target="student-doubts">
+          <span class="sidebar-link-icon">🔍</span> Doubt Solver
+        </div>
+        <div class="sidebar-link student-only" data-target="student-tests">
+          <span class="sidebar-link-icon">📝</span> Mock Exams
+        </div>
+        <div class="sidebar-link student-only" data-target="student-planner">
+          <span class="sidebar-link-icon">📅</span> Revision Calendar
+        </div>
+        <div class="sidebar-link student-only" data-target="student-syllabus">
+          <span class="sidebar-link-icon">📚</span> My Syllabus
+        </div>
+        <div class="sidebar-link student-only" data-target="student-jeeneet">
+          <span class="sidebar-link-icon">🚀</span> JEE / NEET Prep
+        </div>
+
+        <div class="sidebar-link student-only" data-target="student-battles">
+          <span class="sidebar-link-icon">⚔️</span> Quiz Battles
+        </div>
+        <div class="sidebar-link student-only" data-target="student-flashcards">
+          <span class="sidebar-link-icon">🗂️</span> Flashcards
+        </div>
+        <div class="sidebar-link student-only" data-target="student-achievements">
+          <span class="sidebar-link-icon">🏆</span> Achievements
+        </div>
+
+        <!-- Parent Sidebar Links -->
+        <div class="sidebar-link active parent-only" data-target="parent-dash">
+          <span class="sidebar-link-icon">📊</span> Parent Dashboard
+        </div>
+        <div class="sidebar-link parent-only" data-target="parent-reports">
+          <span class="sidebar-link-icon">📈</span> Score Trends
+        </div>
+
+        <!-- Teacher Sidebar Links -->
+        <div class="sidebar-link active teacher-only" data-target="teacher-dash">
+          <span class="sidebar-link-icon">🏫</span> Teacher Console
+        </div>
+        <div class="sidebar-link teacher-only" data-target="teacher-gen">
+          <span class="sidebar-link-icon">⚙️</span> AI Question Gen
+        </div>
+        <div class="sidebar-link teacher-only" data-target="teacher-portion">
+          <span class="sidebar-link-icon">📚</span> Manage Portion
+        </div>
+        <div class="sidebar-link teacher-only" data-target="teacher-announcements">
+          <span class="sidebar-link-icon">📣</span> Send Updates
+        </div>
+      </aside>
+
+      <!-- Main Panel Routing Area -->
+      <main>
+        
+        <!-- ================= STUDENT PANELS ================= -->
+        <div class="role-panel student-panel active">
+          
+          <!-- View: Dashboard -->
+          <div id="student-dash" class="panel-view active">
+            <div class="dashboard-grid">
+              <div class="dash-row">
+                <div class="glass-panel welcome-banner">
+                  <h1 id="welcomeTitle">Namaste Rohan! 🚀</h1>
+                  <div class="student-context-row" id="studentContextRow"></div>
+                  <p>You have revised 4 days in a row. Complete your revision checklist today to maintain your streak and level up to Level 5!</p>
+                </div>
+                
+                <h3>Interactive Adaptive Learning Path</h3>
+                <p style="font-size: 12px; margin-top: -15px; margin-bottom: 12px;">Visualizes progress across syllabus topics. Weak concepts (red nodes) trigger custom revision prompts.</p>
+                <div class="glass-panel" style="padding: 24px; overflow-x: auto; margin-bottom: 10px;">
+                  <div style="display: flex; align-items: center; justify-content: center; gap: 30px; min-width: 600px; padding: 10px 0;" id="learningPathRoadmap">
+                    <!-- Dynamic nodes loaded here via app.js -->
+                  </div>
+                </div>
+              </div>
+              
+              <div class="dash-row">
+                <!-- Daily Study Goals Checklist -->
+                <div class="glass-panel task-card">
+                  <h3>Daily Revision Tasks</h3>
+                  <p style="font-size: 12px; margin-bottom: 10px;">Check completed targets to gain experience points (XP).</p>
+                  <div class="task-list" id="dailyTaskList">
+                    <!-- Tasks will populate here -->
+                  </div>
+                </div>
+                
+                <!-- School & Teacher Announcements -->
+                <div class="glass-panel task-card" style="margin-top: 10px;">
+                  <h3>Announcements</h3>
+                  <div class="task-list" id="announcementsList" style="margin-top: 10px;">
+                    <!-- Announcements populate here -->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- View: AI Tutor -->
+          <div id="student-tutor" class="panel-view">
+            <h2>AI Learning Companion</h2>
+            <div class="tutor-context-bar">
+              <div>
+                <div class="context-label">Tutor Complexity</div>
+                <div class="complexity-switcher" id="tutorComplexitySwitcher">
+                  <button class="complexity-btn" type="button" data-complexity="foundation">Foundation</button>
+                  <button class="complexity-btn active" type="button" data-complexity="standard">Standard</button>
+                  <button class="complexity-btn" type="button" data-complexity="advanced">Advanced</button>
+                  <button class="complexity-btn" type="button" data-complexity="deep-dive">Deep Dive</button>
+                </div>
+              </div>
+              <div class="ncert-source-card">
+                <strong id="ncertTutorSource">NCERT source loading...</strong>
+                <span id="ncertTutorVerified"></span>
+              </div>
+            </div>
+            <div class="glass-panel ai-tutor-container">
+              <div class="chat-chapters-sidebar" id="tutorChaptersList">
+                <!-- Chapters buttons dynamically loaded here -->
+              </div>
+              <div class="chat-main-box">
+                <div class="chat-header">
+                  <div class="ai-profile">
+                    <div class="ai-avatar">
+                      🤖
+                      <div class="ai-avatar-glow"></div>
+                    </div>
+                    <div>
+                      <h3 style="margin-bottom: 2px;">Vidya AI Tutor</h3>
+                      <span class="ai-status">🟢 Active Study Mentor</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="chat-history" id="chatHistoryBox">
+                  <!-- Chat messages load here -->
+                </div>
+                <div class="chat-input-area" style="position: relative;">
+                  <button class="sec-btn" id="tutorVoiceMicBtn" style="padding: 10px; border-radius: 12px; margin-right: 4px; font-size: 16px; line-height:1; display:flex; align-items:center; justify-content:center; width:44px; height:44px;" title="Speak doubt">🎙️</button>
+                  <input type="text" class="chat-text-input" id="chatInput" placeholder="Ask a doubt or select a topic on the left...">
+                  <button class="chat-send-btn" id="chatSendBtn">➔</button>
+                  
+                  <!-- Pulsing Voice Recording waveform overlay -->
+                  <div id="voiceWaveOverlay" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-main); border-radius: 12px; align-items: center; justify-content: space-between; padding: 0 16px; border: 1px solid var(--accent-purple);">
+                    <span style="font-size: 13px; font-weight: 600; color: var(--accent-purple); display: flex; align-items: center; gap: 6px;">🎙️ Recording voice doubt...</span>
+                    <div style="display: flex; gap: 4px; align-items: center;" id="voiceWaveAnimation">
+                      <div class="wave-bar" style="width: 3px; height: 14px; background: var(--accent-purple); border-radius: 2px;"></div>
+                      <div class="wave-bar" style="width: 3px; height: 28px; background: var(--accent-purple); border-radius: 2px;"></div>
+                      <div class="wave-bar" style="width: 3px; height: 18px; background: var(--accent-purple); border-radius: 2px;"></div>
+                      <div class="wave-bar" style="width: 3px; height: 8px; background: var(--accent-purple); border-radius: 2px;"></div>
+                    </div>
+                    <button class="primary-btn" id="stopVoiceRecBtn" style="font-size: 11px; padding: 6px 12px; background: var(--accent-purple); box-shadow: none;">Transcribe</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- View: Doubt Solver -->
+          <div id="student-doubts" class="panel-view">
+            <h2>AI Photo Doubt Solver</h2>
+            <div class="doubt-solver-grid">
+              <div>
+                <!-- Mock Drag & Drop Upload Panel -->
+                <div class="glass-panel upload-panel" id="ocrUploadPanel">
+                  <span class="upload-icon">📸</span>
+                  <h3>Upload Doubt Picture</h3>
+                  <p style="font-size: 12px;">Drag & drop your textbook question image here or click to simulate photo capture.</p>
+                  
+                  <div class="image-preview-box" id="ocrPreviewBox" style="display: none;">
+                    <div class="scan-line"></div>
+                    <span style="font-size: 12px; font-weight: 500;">Scanning Question Image...</span>
+                  </div>
+                </div>
+                
+                <h3>Quick Select Standard Doubts</h3>
+                <div class="sample-doubts-list" id="quickDoubtsList">
+                  <!-- Preset options loaded dynamically -->
+                </div>
+              </div>
+              
+              <div class="glass-panel doubt-answer-display" id="doubtResponseArea">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass-border); padding-bottom: 12px; margin-bottom: 14px;">
+                  <h3 style="color: var(--accent-indigo); margin-bottom:0;">Interactive Explanation</h3>
+                  <button class="sec-btn" id="doubtEli5ToggleBtn" style="display: none; font-size:11px; padding:6px 12px; border-color: var(--accent-purple); color: var(--accent-purple); box-shadow: none;">Explain like I'm 5 (ELI5) 🎈</button>
+                </div>
+                <div id="doubtExplanationContent">
+                  <p>Upload a textbook photo or select one of the core doubts on the left to see the step-by-step AI explanation, chemical equations, and exam tips.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- View: Mock Exams -->
+          <div id="student-tests" class="panel-view">
+            <h2>Mock Exam Center</h2>
+            
+            <!-- Panel: Select Test -->
+            <div id="test-select-screen" class="mock-test-selection">
+              <!-- Load tests dynamically here -->
+            </div>
+            
+            <!-- Panel: Active Mock Test Session -->
+            <div id="test-session-screen" class="panel-view" style="display: none;">
+              <div class="test-layout">
+                <div>
+                  <div class="glass-panel question-box">
+                    <div class="question-num" id="currentQuestionNum">Question 1 of 4</div>
+                    <div class="question-body" id="currentQuestionText">Loading...</div>
+                    <div id="msqWarningBox" style="display: none; font-size: 12px; color: var(--accent-orange); margin: -10px 0 16px 0; background: rgba(249, 115, 22, 0.1); padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(249, 115, 22, 0.2);">
+                      ⚠️ <strong>Multiple Answers Correct:</strong> This is a Multi-Select Question. Select one or more correct options. No partial marking.
+                    </div>
+                    <div class="option-items" id="currentQuestionOptions">
+                      <!-- Render options -->
+                    </div>
+                  </div>
+                  <div class="test-nav-controls">
+                    <button class="sec-btn" id="prevQuestionBtn">◀ Back</button>
+                    <button class="primary-btn" id="nextQuestionBtn">Next Question ▶</button>
+                  </div>
+                </div>
+                <div>
+                  <div class="glass-panel test-timer-card">
+                    <div style="font-size: 12px; color: var(--text-dim); text-transform: uppercase;">Remaining Time</div>
+                    <div class="timer-digits" id="testTimer">10:00</div>
+                  </div>
+                  
+                  <div class="glass-panel question-box" style="margin-top: 16px; padding: 18px;">
+                    <h3>Question Palette</h3>
+                    <div class="question-nav-grid" id="questionNavGrid">
+                      <!-- Grid navigations loaded -->
+                    </div>
+                    <button class="primary-btn" id="submitTestBtn" style="width: 100%; margin-top: 20px; background: linear-gradient(135deg, var(--accent-red), var(--accent-orange)); box-shadow: 0 0 20px rgba(239, 68, 68, 0.25);">Submit Exam</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Panel: Scorecard and AI diagnostic -->
+            <div id="test-report-screen" class="panel-view" style="display: none;">
+              <div class="glass-panel report-header">
+                <h2>Concept Assessment Summary</h2>
+                <div class="score-display-ring">
+                  <div class="score-num" id="reportScore">75%</div>
+                  <div style="font-size: 11px; color: var(--text-muted);">Accuracy</div>
+                </div>
+                <h3 id="reportTitle">Electricity Concept Test</h3>
+                <p id="reportSubtitle">Completed on May 28, 2026</p>
+              </div>
+              
+              <div class="glass-panel ai-diagnostic-box">
+                <h3 style="color: var(--accent-indigo); display: flex; align-items: center; gap: 8px;">🤖 AI Diagnostic Recommendations</h3>
+                <p style="margin-bottom: 12px;">Here is the custom study path generated based on your weak and strong areas in this concept test:</p>
+                <div class="feedback-bullets" id="reportDiagnostics">
+                  <!-- Diagnoses lists -->
+                </div>
+              </div>
+              <button class="primary-btn" id="backToTestsBtn">Done & Back to Exams</button>
+            </div>
+          </div>
+          
+          <!-- View: Revision Calendar -->
+          <div id="student-planner" class="panel-view">
+            <h2>AI Revision Planner</h2>
+            <div class="planner-grid">
+              <div class="glass-panel calendar-card">
+                <div class="calendar-header">
+                  <h3>May 2026</h3>
+                  <span class="logo-badge" style="background: rgba(249,115,22,0.1); color: var(--accent-orange); border-color: rgba(249,115,22,0.2)">Streak Activated</span>
+                </div>
+                <div class="calendar-days" id="calendarDaysGrid">
+                  <!-- Pre-render days of the week -->
+                  <div class="day-name">Sun</div>
+                  <div class="day-name">Mon</div>
+                  <div class="day-name">Tue</div>
+                  <div class="day-name">Wed</div>
+                  <div class="day-name">Thu</div>
+                  <div class="day-name">Fri</div>
+                  <div class="day-name">Sat</div>
+                  <!-- Dynamic day squares loaded here -->
+                </div>
+              </div>
+              
+              <div class="dash-row">
+                <div class="glass-panel streak-summary-card">
+                  <div class="streak-big-flame">🔥</div>
+                  <div class="streak-val" id="streakSummaryCount">5 Days</div>
+                  <h3>Active Study Streak</h3>
+                  <p>You have hit your daily study goal 5 days in a row. Practice daily to keep the fire going and win double XP on weekends!</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- View: Academic Year Syllabus -->
+          <div id="student-syllabus" class="panel-view">
+            <div class="syllabus-page-header">
+              <div>
+                <h2>My Academic Syllabus</h2>
+                <p>Track your school portion against the verified NCERT tutoring cycle.</p>
+              </div>
+              <div class="academic-year-chip" id="syllabusAcademicYear"></div>
+            </div>
+            <div class="glass-panel syllabus-source-panel">
+              <div>
+                <span class="context-label">Tutoring source</span>
+                <h3 id="syllabusSourceTitle"></h3>
+                <p id="syllabusSourceNote"></p>
+              </div>
+              <div class="source-links">
+                <a id="ncertTextbookLink" href="#" target="_blank" rel="noreferrer">Official NCERT Textbooks</a>
+                <a id="ncertRationalisedLink" href="#" target="_blank" rel="noreferrer">Rationalised Content</a>
+              </div>
+            </div>
+            <div class="syllabus-subject-grid" id="syllabusSubjectGrid"></div>
+          </div>
+          
+          <!-- View: JEE / NEET Prep -->
+          <div id="student-jeeneet" class="panel-view">
+            <h2>JEE & NEET Focus Desk</h2>
+            
+            <!-- Stream Toggles -->
+            <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+              <button class="role-btn active" id="jeeneetToggleJee" style="background: rgba(99, 102, 241, 0.15); border-color: var(--accent-indigo);">🎯 JEE Stream</button>
+              <button class="role-btn" id="jeeneetToggleNeet" style="background: transparent; border-color: var(--glass-border);">🧬 NEET Stream</button>
+            </div>
+
+            <div class="planner-grid">
+              <!-- Left column: Challenger problem -->
+              <div class="glass-panel calendar-card" style="padding: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                  <h3 style="color: var(--accent-orange); margin-bottom: 0;">🔥 Daily Challenger MCQ</h3>
+                  <span class="logo-badge" id="challengerSubjectBadge" style="background: rgba(99, 102, 241, 0.15); color: var(--accent-indigo);">Physics (JEE)</span>
+                </div>
+                <p style="font-size: 15px; font-weight: 500; margin-bottom: 20px; line-height: 1.5; color: var(--text-main);" id="challengerQuestionText">
+                  Loading question...
+                </p>
+                <div class="option-items" id="challengerOptionsContainer" style="margin-bottom: 20px;">
+                  <!-- Options loaded dynamically -->
+                </div>
+                <button class="primary-btn" id="submitChallengerBtn" style="width: 100%;">Submit Verification</button>
+                
+                <!-- Challenger AI explanation (initially hidden) -->
+                <div id="challengerExplanationBox" style="display: none; margin-top: 20px; padding: 18px; border-left: 4px solid var(--accent-green); background: rgba(34, 197, 94, 0.05); border-radius: 0 10px 10px 0;">
+                  <h4 style="color: var(--accent-green); margin-bottom: 8px; font-size: 14px; font-weight: 700;">✓ Correct! Step-by-Step AI Verification:</h4>
+                  <p style="font-size: 13px; color: var(--text-muted);" id="challengerExplanationText">
+                    Explanation goes here...
+                  </p>
+                </div>
+              </div>
+              
+              <!-- Right column: Countdown & Flashcards -->
+              <div class="dash-row">
+                <!-- Countdown Timer -->
+                <div class="glass-panel streak-summary-card" style="padding: 20px; gap: 10px;">
+                  <span style="font-size: 12px; color: var(--text-dim); text-transform: uppercase; font-weight: 600;">Days remaining for JEE/NEET 2028</span>
+                  <div class="timer-digits" id="jeeneetCountdown" style="color: var(--accent-orange); text-shadow: 0 0 15px rgba(249, 115, 22, 0.25); font-size: 28px;">729d 14h 25m</div>
+                </div>
+
+                <!-- High Yield booklets -->
+                <div class="glass-panel task-card">
+                  <h3 id="bookletTitle">JEE Master Formulas</h3>
+                  <p style="font-size: 12px; margin-bottom: 12px;" id="bookletSubtitle">Core equations from active chapters for quick revision.</p>
+                  <div style="display: flex; flex-direction: column; gap: 12px;" id="bookletContentContainer">
+                    <!-- Formulas or NCERT quotes load here -->
+                  </div>
+                </div>
+
+                <!-- AI Coaching Box -->
+                <div class="glass-panel task-card" style="margin-top: 10px; background: rgba(168, 85, 247, 0.02); border-color: rgba(168, 85, 247, 0.15);">
+                  <h3 style="color: var(--accent-purple); display: flex; align-items: center; gap: 8px;">🤖 PrepMentor AI</h3>
+                  <p style="font-size: 12px; margin-bottom: 10px;">Ask advanced questions, derivation steps, or speed tricks for JEE & NEET.</p>
+                  <div style="display: flex; gap: 8px;">
+                    <input type="text" class="chat-text-input" id="jeeneetAiInput" placeholder="e.g. Shortcut for infinite ladder resistor..." style="font-size: 13px; padding: 8px 12px;">
+                    <button class="chat-send-btn" id="jeeneetAiSendBtn" style="width: 36px; height: 36px;">➔</button>
+                  </div>
+                  <div id="jeeneetAiResponse" style="display: none; font-size: 12px; margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 8px; max-height: 120px; overflow-y: auto; color: var(--text-muted);">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+
+
+          <!-- View: Quiz Battles -->
+          <div id="student-battles" class="panel-view">
+            <h2>AI Quiz Battle Arena</h2>
+            
+            <!-- Screen: Lobby -->
+            <div id="battle-lobby-screen" class="glass-panel" style="padding: 30px; text-align: center;">
+              <span style="font-size: 52px; display: block; animation: bounceSlow 2s infinite;">⚔️</span>
+              <h3 style="margin-top: 14px; font-size: 20px;">AI Concept Arena Showdown</h3>
+              <p style="font-size: 13px; max-width: 500px; margin: 8px auto 24px auto;">Challenge an AI student peer in a fast-paced 3-question concepts showdown. Complete rounds quickly to preserve your HP and win XP bonuses!</p>
+              
+              <h3 style="font-size: 16px; margin-bottom: 14px; color: var(--accent-indigo);">Choose Opponent to Challenge</h3>
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 12px;" id="battleOpponentsList">
+                <!-- Render opponents dynamically -->
+              </div>
+            </div>
+            
+            <!-- Screen: Matchmaking -->
+            <div id="battle-matchmaking-screen" class="glass-panel" style="display: none; padding: 40px; text-align: center; height: 350px; flex-direction: column; align-items: center; justify-content: center; gap: 20px;">
+              <div style="display: flex; align-items: center; gap: 40px;">
+                <div class="ai-avatar" style="width: 70px; height: 70px; font-size: 32px; border: 2px solid var(--accent-indigo);">👦</div>
+                <div style="font-size: 24px; font-weight: 800; color: var(--accent-orange); animation: pulseAvatar 1s infinite;">VS</div>
+                <div class="ai-avatar" style="width: 70px; height: 70px; font-size: 32px; background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));" id="opponentBattleAvatar">🤖</div>
+              </div>
+              <h3 id="battleMatchmakingStatus">Finding Opponent...</h3>
+              <p style="font-size: 12px; color: var(--text-dim);">Connecting to exam matchmaking room. Please hold on.</p>
+            </div>
+
+            <!-- Screen: Active Arena -->
+            <div id="battle-arena-screen" class="panel-view" style="display: none;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <!-- Player HP -->
+                <div class="glass-panel" style="padding: 16px; border-left: 4px solid var(--accent-indigo); background: rgba(99, 102, 241, 0.02);">
+                  <div style="display:flex; justify-content:space-between; font-weight:700; margin-bottom: 8px; font-size: 14px;">
+                    <span>👦 Rohan (You)</span>
+                    <span id="playerBattleScore">HP: 100/100</span>
+                  </div>
+                  <div class="progress-bar-bg" style="height: 12px; border-radius:6px;">
+                    <div class="progress-bar-fill" id="playerBattleHpBar" style="width: 100%; background: linear-gradient(to right, var(--accent-blue), var(--accent-indigo));"></div>
+                  </div>
+                </div>
+                <!-- Opponent HP -->
+                <div class="glass-panel" style="padding: 16px; border-left: 4px solid var(--accent-purple); background: rgba(168, 85, 247, 0.02);">
+                  <div style="display:flex; justify-content:space-between; font-weight:700; margin-bottom: 8px; font-size: 14px;">
+                    <span id="opponentBattleName">👦 Pranav</span>
+                    <span id="opponentBattleScore">HP: 100/100</span>
+                  </div>
+                  <div class="progress-bar-bg" style="height: 12px; border-radius:6px;">
+                    <div class="progress-bar-fill" id="opponentBattleHpBar" style="width: 100%; background: linear-gradient(to right, var(--accent-purple), var(--accent-pink));"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Question box -->
+              <div class="glass-panel question-box">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 14px;">
+                  <span class="question-num" id="battleQuestionNum">Battle Question 1 of 3</span>
+                  <span class="logo-badge" style="background: rgba(239, 68, 68, 0.15); color: var(--accent-red); font-size:12px; font-weight:800; border-color: rgba(239, 68, 68, 0.3);" id="battleRoundTimer">10s Remaining</span>
+                </div>
+                <h3 style="font-size: 16px; line-height: 1.5; margin-bottom: 20px;" id="battleQuestionText">Loading Question...</h3>
+                <div class="option-items" id="battleOptionsContainer">
+                  <!-- Dynamic Options -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Screen: Results -->
+            <div id="battle-results-screen" class="glass-panel" style="display: none; padding: 40px; text-align: center;">
+              <span style="font-size: 64px;" id="battleOutcomeEmoji">🏆</span>
+              <h2 style="margin-top: 16px; font-size: 26px;" id="battleOutcomeTitle">Victory!</h2>
+              <p id="battleOutcomeDesc" style="font-size: 14px; max-width: 450px; margin: 8px auto 24px auto;">You answered correctly and won the match!</p>
+              <button class="primary-btn" id="exitBattleBtn">Done & Exit Arena</button>
+            </div>
+          </div>
+
+          <!-- View: Flashcard Hub -->
+          <div id="student-flashcards" class="panel-view">
+            <h2>AI Flashcard Hub</h2>
+            <div style="display: grid; grid-template-columns: 260px 1fr; gap: 20px; height: 500px;">
+              <!-- Sidebar list of decks -->
+              <div class="glass-panel" style="padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;" id="flashcardDecksSidebar">
+                <!-- Decks load dynamically -->
+              </div>
+              
+              <!-- Flashcard swiper interface -->
+              <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;">
+                <div class="flashcard-container" id="activeFlashcard">
+                  <div class="flashcard-inner">
+                    <div class="flashcard-front">
+                      <span style="font-size: 11px; color: var(--accent-indigo); text-transform: uppercase; font-weight:700; border: 1px solid rgba(99,102,241,0.2); background: rgba(99,102,241,0.1); padding: 2px 8px; border-radius: 4px;">Concept Term</span>
+                      <h3 id="cardFrontText" style="text-align: center; line-height:1.5; font-size:18px; padding: 20px 10px; color: #fff;">Question/Term</h3>
+                      <span style="font-size: 11px; color: var(--text-dim);">Tap Card to Flip ↻</span>
+                    </div>
+                    <div class="flashcard-back">
+                      <span style="font-size: 11px; color: var(--accent-green); text-transform: uppercase; font-weight:700; border: 1px solid rgba(34,197,94,0.2); background: rgba(34,197,94,0.1); padding: 2px 8px; border-radius: 4px;">AI Revision Summary</span>
+                      <p id="cardBackText" style="text-align: center; line-height:1.6; font-size:14px; padding: 20px 10px; font-weight: 500; color: var(--text-muted);">Explanation/Formula</p>
+                      <span style="font-size: 11px; color: var(--text-dim);">Tap Card to Flip ↻</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Swipe controls -->
+                <div style="display: flex; gap: 16px;">
+                  <button class="primary-btn" id="swipeLeftBtn" style="background: linear-gradient(135deg, var(--accent-red), var(--accent-orange)); box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);">❌ Review Again</button>
+                  <button class="primary-btn" id="swipeRightBtn" style="background: linear-gradient(135deg, var(--accent-green), var(--accent-blue)); box-shadow: 0 0 15px rgba(34, 197, 94, 0.2);">✓ Got It! Mastered</button>
+                </div>
+                <p style="font-size: 12px; color: var(--text-dim);" id="flashcardDeckProgress">Card 1 of 4</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- View: Achievements -->
+          <div id="student-achievements" class="panel-view">
+            <h2>Trophy Cabinet & Milestones</h2>
+            <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px;">
+              <!-- Badges List -->
+              <div class="glass-panel" style="padding: 24px;">
+                <h3>Unlocked Ranks & Badges</h3>
+                <p style="font-size:12px; margin-bottom:14px;">Master syllabi, maintain streaks, and win battles to unlock achievements.</p>
+                <div style="display: flex; flex-direction: column; gap: 14px;" id="achievementsBadgesList">
+                  <!-- Badges load here -->
+                </div>
+              </div>
+              
+              <!-- Milestones Checklist -->
+              <div class="glass-panel" style="padding: 24px;">
+                <h3>Syllabus Milestones</h3>
+                <p style="font-size:12px; margin-bottom:14px;">Learning benchmarks achieved by Rohan.</p>
+                <div style="display: flex; flex-direction: column; gap: 12px;" id="achievementsMilestonesList">
+                  <!-- Milestones load here -->
+                </div>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+
+        <!-- ================= PARENT PANELS ================= -->
+        <div class="role-panel parent-panel">
+          
+          <!-- View: Parent Dashboard -->
+          <div id="parent-dash" class="panel-view active">
+            <h2>Parent Progress Portal</h2>
+            <div class="parent-dashboard">
+              <div class="dash-row">
+                <!-- Custom CSS Performance Charts -->
+                <div class="glass-panel score-chart-container">
+                  <h3>Rohan's Test Accuracy Trend</h3>
+                  <p style="font-size: 12px;">Visualizes percentage marks scored in recent evaluations.</p>
+                  <div class="visual-bar-chart" id="parentVisualChart">
+                    <!-- Loaded dynamically via app.js -->
+                  </div>
+                </div>
+                
+                <!-- Child strengths/weaknesses -->
+                <div class="glass-panel score-chart-container">
+                  <h3>Focus Areas (AI Syllabus Insights)</h3>
+                  <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 14px;" id="parentStrengthWeaknessList">
+                    <!-- Render topics dynamically -->
+                  </div>
+                </div>
+              </div>
+              
+              <div class="dash-row">
+                <!-- Parent AI Recommendations -->
+                <div class="glass-panel score-chart-container">
+                  <h3 style="color: var(--accent-purple); display: flex; align-items: center; gap: 8px;">🤖 Parent AI Advice</h3>
+                  <p style="font-size: 13px; margin-bottom: 16px;">Actionable prompts generated by analyzing Rohan's study behavior this week.</p>
+                  
+                  <div class="insight-card">
+                    <span class="insight-bulb">💡</span>
+                    <div>
+                      <h4 style="font-size: 14px; margin-bottom: 4px;">Praise Consistency</h4>
+                      <p style="font-size: 13px;">Rohan has completed mathematics tasks for 4 days straight! Encourage him to maintain this momentum.</p>
+                    </div>
+                  </div>
+                  
+                  <div class="insight-card" style="border-color: rgba(239, 68, 68, 0.25); background: rgba(239, 68, 68, 0.02);">
+                    <span class="insight-bulb">⚠️</span>
+                    <div>
+                      <h4 style="font-size: 14px; margin-bottom: 4px; color: var(--accent-red);">Review Weak Concept</h4>
+                      <p style="font-size: 13px;">He spent under 15 seconds per question on the 'Factors affecting Resistance' sub-topic and missed 2 questions. Suggest he runs a guided walkthrough with the Vidya AI Tutor.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- View: Parent Score Trends -->
+          <div id="parent-reports" class="panel-view">
+            <h2>Detailed Scorecards</h2>
+            <div class="glass-panel score-chart-container" style="max-width: 800px;">
+              <h3>Evaluation Logs</h3>
+              <table class="data-table" id="parentLogsTable" style="margin-top: 14px;">
+                <thead>
+                  <tr>
+                    <th>Test Title</th>
+                    <th>Date Taken</th>
+                    <th>Score / Out of</th>
+                    <th>Grade Awarded</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Logs -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+          
+        </div>
+
+        <!-- ================= TEACHER PANELS ================= -->
+        <div class="role-panel teacher-panel">
+          
+          <!-- View: Teacher Dashboard -->
+          <div id="teacher-dash" class="panel-view active">
+            <h2>Teacher Oversight Desk</h2>
+            <div class="teacher-grid">
+              <div class="dash-row">
+                <div class="glass-panel score-chart-container">
+                  <h3>Active Homework Allocations</h3>
+                  <div class="task-list" id="teacherHomeworksList" style="margin-top: 14px;">
+                    <!-- Render allocations -->
+                  </div>
+                </div>
+              </div>
+              
+              <div class="dash-row">
+                <!-- Class metrics -->
+                <div class="glass-panel score-chart-container">
+                  <h3>Class Grade Averages</h3>
+                  <div style="margin-top: 14px;" id="teacherClassPerformanceList">
+                    <!-- Progress meters -->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- View: AI Question Gen -->
+          <div id="teacher-gen" class="panel-view">
+            <h2>AI CBSE Question Generator</h2>
+            <div class="teacher-grid">
+              <div class="glass-panel score-chart-container">
+                <h3>Generation Parameter</h3>
+                <div class="generator-form">
+                  <div class="form-group">
+                    <label>Select Subject</label>
+                    <select class="form-select" id="genSubject">
+                      <option value="science">Class 10 Science (CBSE)</option>
+                      <option value="mathematics">Class 10 Mathematics (CBSE)</option>
+                    </select>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label>Select Chapter</label>
+                    <select class="form-select" id="genChapter">
+                      <!-- Render chapters dynamically -->
+                    </select>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label>Target Sub-Topic / Learning Goal</label>
+                    <input type="text" class="form-input" id="genTopic" placeholder="e.g. Resistors in parallel derivations">
+                  </div>
+                  
+                  <div class="form-group">
+                    <label>Question Type</label>
+                    <select class="form-select" id="genType">
+                      <option value="mcq">Multiple Choice Questions (CBSE Standard)</option>
+                      <option value="assertion-reason">Assertion & Reason format</option>
+                      <option value="short">Short Answer questions with evaluation guide</option>
+                    </select>
+                  </div>
+                  
+                  <button class="primary-btn" id="genQuestionsBtn" style="margin-top: 10px;">🤖 Generate Homework Sheet</button>
+                </div>
+              </div>
+              
+              <div>
+                <div class="glass-panel homework-preview-box">
+                  <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; margin-bottom: 14px;">
+                    <h3>Generated Sheet Preview</h3>
+                    <button class="primary-btn" id="assignHomeworkBtn" style="font-size: 12px; padding: 6px 12px; display: none; background: linear-gradient(135deg, var(--accent-green), var(--accent-blue)); box-shadow: var(--glow-shadow-green);">Assign to Class 10-A</button>
+                  </div>
+                  <div id="genQuestionsPreview">
+                    <p style="text-align: center; color: var(--text-dim); padding-top: 30px;">Input variables on the left and hit generate to synthesize contextual CBSE worksheets using the AI simulator.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- View: Academic Portion Management -->
+          <div id="teacher-portion" class="panel-view">
+            <div class="syllabus-page-header">
+              <div>
+                <h2>Manage Academic Portion</h2>
+                <p>Set the current school portion for tutoring and revision planning.</p>
+              </div>
+              <div class="academic-year-chip">Class 10-A | 2026-27</div>
+            </div>
+            <div class="glass-panel syllabus-source-panel">
+              <div>
+                <span class="context-label">Verified content baseline</span>
+                <h3>Class 10 NCERT | Reprint 2025-26</h3>
+                <p>Selected chapters are exposed to student tutoring and revision recommendations.</p>
+              </div>
+            </div>
+            <div class="syllabus-subject-grid" id="teacherPortionGrid"></div>
+          </div>
+
+          <!-- View: Announcements Creation -->
+          <div id="teacher-announcements" class="panel-view">
+            <h2>Publish Board Updates</h2>
+            <div class="glass-panel score-chart-container" style="max-width: 600px;">
+              <h3>New Broadcast</h3>
+              <div class="generator-form">
+                <div class="form-group">
+                  <label>Title</label>
+                  <input type="text" class="form-input" id="annTitleInput" placeholder="e.g. CBSE Syllabus Checklist">
+                </div>
+                <div class="form-group">
+                  <label>Content</label>
+                  <textarea class="form-input" id="annContentInput" rows="5" placeholder="Type instructions for students and parents..." style="resize: vertical; font-family: inherit;"></textarea>
+                </div>
+                <button class="primary-btn" id="publishAnnBtn">Broadcast Announcement</button>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+
+      </main>
+
+    </div>
+
+  </div>
+
+  <!-- Main JavaScript module -->
+  <script type="module" src="app.js?v=1.0.2"></script>
+</body>
+</html>

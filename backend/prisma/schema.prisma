@@ -1,0 +1,235 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  PARENT
+  TEACHER
+}
+
+enum Board {
+  CBSE
+  ICSE
+  STATE
+}
+
+enum ChapterStatus {
+  NOT_STARTED
+  LEARNING
+  REVISING
+  MASTERED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  username  String   @unique
+  password  String
+  role      Role
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student  Student?
+  teacher  Teacher?
+  parent   Parent?
+
+  @@map("users")
+}
+
+model Student {
+  id             String  @id @default(cuid())
+  userId         String  @unique
+  user           User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name           String
+  classLevel     String  @default("Class 10")
+  section        String  @default("A")
+  board          Board   @default(CBSE)
+  rollNumber     String?
+  school         String?
+  academicYear   String  @default("2026-27")
+  xp             Int     @default(0)
+  level          Int     @default(1)
+  nextLevelXp    Int     @default(1000)
+  streak         Int     @default(0)
+  lastStudyDate  DateTime?
+  parentId       String?
+  parent         Parent? @relation(fields: [parentId], references: [id])
+  teacherId      String?
+  teacher        Teacher? @relation(fields: [teacherId], references: [id])
+
+  chapterProgress ChapterProgress[]
+  testResults     TestResult[]
+  dailyTasks      DailyTask[]
+  announcements   StudentAnnouncement[]
+  weakTopics      WeakTopic[]
+  flashcardProgress FlashcardProgress[]
+  battleResults   BattleResult[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("students")
+}
+
+model Teacher {
+  id       String  @id @default(cuid())
+  userId   String  @unique
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name     String
+  subject  String  @default("Science")
+  school   String?
+
+  students   Student[]
+  homeworks  Homework[]
+  announcements TeacherAnnouncement[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("teachers")
+}
+
+model Parent {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name   String
+
+  children Student[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("parents")
+}
+
+model ChapterProgress {
+  id         String        @id @default(cuid())
+  studentId  String
+  student    Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  chapterId  String
+  subject    String
+  status     ChapterStatus @default(NOT_STARTED)
+  updatedAt  DateTime      @updatedAt
+
+  @@unique([studentId, chapterId])
+  @@map("chapter_progress")
+}
+
+model TestResult {
+  id          String   @id @default(cuid())
+  studentId   String
+  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  testKey     String
+  testTitle   String
+  subject     String
+  score       Int
+  totalMarks  Int
+  accuracy    Int
+  xpAwarded   Int      @default(0)
+  answers     Json
+  completedAt DateTime @default(now())
+
+  @@map("test_results")
+}
+
+model DailyTask {
+  id          String   @id @default(cuid())
+  studentId   String
+  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  title       String
+  completed   Boolean  @default(false)
+  date        DateTime @default(now())
+  sourceType  String?  // "homework", "ai_generated", "manual"
+  sourceId    String?
+
+  @@map("daily_tasks")
+}
+
+model TeacherAnnouncement {
+  id        String   @id @default(cuid())
+  teacherId String
+  teacher   Teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  title     String
+  content   String
+  targetClass String?
+  createdAt DateTime @default(now())
+
+  studentAnnouncements StudentAnnouncement[]
+
+  @@map("teacher_announcements")
+}
+
+model StudentAnnouncement {
+  id             String              @id @default(cuid())
+  studentId      String
+  student        Student             @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  announcementId String
+  announcement   TeacherAnnouncement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  read           Boolean             @default(false)
+  createdAt      DateTime            @default(now())
+
+  @@unique([studentId, announcementId])
+  @@map("student_announcements")
+}
+
+model Homework {
+  id             String   @id @default(cuid())
+  teacherId      String
+  teacher        Teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  title          String
+  subject        String
+  chapterId      String
+  targetClass    String
+  questions      Json
+  dueDate        DateTime
+  submittedCount Int      @default(0)
+  totalCount     Int      @default(30)
+  createdAt      DateTime @default(now())
+
+  @@map("homeworks")
+}
+
+model WeakTopic {
+  id         String  @id @default(cuid())
+  studentId  String
+  student    Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  topic      String
+  subject    String
+  clarity    Int     @default(30)
+  updatedAt  DateTime @updatedAt
+
+  @@unique([studentId, topic])
+  @@map("weak_topics")
+}
+
+model FlashcardProgress {
+  id         String  @id @default(cuid())
+  studentId  String
+  student    Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  deckId     String
+  cardIndex  Int
+  mastered   Boolean @default(false)
+  updatedAt  DateTime @updatedAt
+
+  @@unique([studentId, deckId, cardIndex])
+  @@map("flashcard_progress")
+}
+
+model BattleResult {
+  id           String   @id @default(cuid())
+  studentId    String
+  student      Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  opponentName String
+  won          Boolean
+  xpAwarded    Int      @default(0)
+  playedAt     DateTime @default(now())
+
+  @@map("battle_results")
+}

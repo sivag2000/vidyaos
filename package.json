@@ -1,0 +1,13 @@
+{
+  "name": "vidyaos",
+  "version": "1.0.0",
+  "description": "AI Study Companion & Personalized Learning Platform for Indian Students",
+  "main": "app.js",
+  "scripts": {
+    "dev": "npx -y http-server -c-1 -p 3000 ."
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}
