@@ -8,6 +8,7 @@ import teacherRoutes from './routes/teacher.routes';
 import parentRoutes from './routes/parent.routes';
 import testRoutes from './routes/test.routes';
 import aiRoutes from './routes/ai.routes';
+import curriculumRoutes from './routes/curriculum.routes';
 
 dotenv.config();
 
@@ -38,6 +39,7 @@ app.use('/api/teacher', teacherRoutes);
 app.use('/api/parent', parentRoutes);
 app.use('/api/tests', testRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/curriculum', curriculumRoutes);
 
 // Global error handler
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
