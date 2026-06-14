@@ -6,7 +6,7 @@ const gemini = process.env.GEMINI_API_KEY
   ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
   : null;
 
-const MODEL = 'gemini-1.5-flash'; // fast + free tier available
+const MODEL = 'gemini-2.0-flash'; // fast + free tier available
 
 export interface TutorResponse {
   text: string;

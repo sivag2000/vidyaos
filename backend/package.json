@@ -12,7 +12,8 @@
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
     "db:studio": "prisma studio",
-    "db:seed": "ts-node src/seed.ts"
+    "db:seed": "ts-node src/seed.ts",
+    "generate:questions": "ts-node scripts/generate-questions.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
