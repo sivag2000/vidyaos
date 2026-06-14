@@ -4,11 +4,13 @@ import Dashboard from './Dashboard';
 import AiTutor from './AiTutor';
 import MockTests from './MockTests';
 import DoubtSolver from './DoubtSolver';
+import Practice from './Practice';
 
 const NAV = [
   { to: 'dashboard', icon: '🏠', label: 'Dashboard' },
   { to: 'tutor', icon: '🤖', label: 'AI Tutor' },
   { to: 'doubt', icon: '🔍', label: 'Doubt Solver' },
+  { to: 'practice', icon: '📚', label: 'Practice' },
   { to: 'tests', icon: '📝', label: 'Mock Exams' },
 ];
 
@@ -55,6 +57,7 @@ export default function StudentLayout() {
             <Route path="tutor" element={<AiTutor />} />
             <Route path="doubt" element={<DoubtSolver />} />
             <Route path="tests" element={<MockTests />} />
+            <Route path="practice" element={<Practice />} />
             <Route path="*" element={<Dashboard />} />
           </Routes>
         </main>
