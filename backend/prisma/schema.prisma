@@ -26,6 +26,24 @@ enum ChapterStatus {
   MASTERED
 }
 
+enum QuestionType {
+  MCQ
+  NUMERICAL
+  ASSERTION_REASON
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum QuestionStatus {
+  DRAFT
+  PUBLISHED
+  REJECTED
+}
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
@@ -70,6 +88,7 @@ model Student {
   weakTopics      WeakTopic[]
   flashcardProgress FlashcardProgress[]
   battleResults   BattleResult[]
+  questionAttempts QuestionAttempt[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -232,4 +251,45 @@ model BattleResult {
   playedAt     DateTime @default(now())
 
   @@map("battle_results")
+}
+
+model Question {
+  id            String         @id @default(cuid())
+  classLevel    Int
+  subject       String
+  chapterId     String
+  topic         String
+  type          QuestionType
+  difficulty    Difficulty
+  question      String
+  options       Json?
+  correctAnswer Json
+  explanation   String
+  stemHash      String
+  source        String         @default("ai-gemini")
+  status        QuestionStatus @default(PUBLISHED)
+  modelMeta     Json?
+  createdAt     DateTime       @default(now())
+
+  attempts QuestionAttempt[]
+
+  @@unique([chapterId, stemHash])
+  @@index([classLevel, subject, chapterId])
+  @@index([chapterId, difficulty, status])
+  @@map("questions")
+}
+
+model QuestionAttempt {
+  id            String   @id @default(cuid())
+  studentId     String
+  student       Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  questionId    String
+  question      Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  isCorrect     Boolean
+  selectedAnswer Json
+  attemptedAt   DateTime @default(now())
+
+  @@unique([studentId, questionId])
+  @@index([studentId])
+  @@map("question_attempts")
 }
