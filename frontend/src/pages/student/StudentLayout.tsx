@@ -44,7 +44,7 @@ export default function StudentLayout() {
         <aside style={{ width: 220, borderRight: '1px solid var(--glass-border)', padding: '20px 12px', display: 'flex', flexDirection: 'column', gap: 4 }}>
           <p style={{ fontSize: 11, color: 'var(--text-dim)', fontWeight: 700, textTransform: 'uppercase', padding: '0 8px', marginBottom: 8 }}>👤 Student Mode</p>
           {NAV.map(n => (
-            <NavLink key={n.to} to={n.to} style={({ isActive }) => ({ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 10, fontSize: 14, fontWeight: 600, textDecoration: 'none', color: isActive ? 'var(--text-main)' : 'var(--text-muted)', background: isActive ? 'rgba(99,102,241,0.12)' : 'transparent', transition: 'var(--transition-smooth)' })}>
+            <NavLink key={n.to} to={`/student/${n.to}`} style={({ isActive }) => ({ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 10, fontSize: 14, fontWeight: 600, textDecoration: 'none', color: isActive ? 'var(--text-main)' : 'var(--text-muted)', background: isActive ? 'rgba(99,102,241,0.12)' : 'transparent', transition: 'var(--transition-smooth)' })}>
               <span>{n.icon}</span> {n.label}
             </NavLink>
           ))}
