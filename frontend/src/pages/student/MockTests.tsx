@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import api from '../../api/client';
-import { MOCK_TESTS_DATA } from '../../data/mockTests';
+import { fetchCurriculum, generateTest, type SubjectDef } from '../../api/practice';
 
 type Screen = 'select' | 'session' | 'report';
 interface Answers { [qId: string]: number | number[]; }
@@ -16,9 +16,18 @@ export default function MockTests() {
 
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
-  function startTest(testKey: string) {
-    const test = MOCK_TESTS_DATA[testKey];
-    setActiveTest({ ...test, key: testKey });
+  const [subjects, setSubjects] = useState<SubjectDef[]>([]);
+  useEffect(() => { fetchCurriculum().then(c => setSubjects(c.subjects)).catch(() => {}); }, []);
+
+  async function startTest(chapterId: string) {
+    let test: Awaited<ReturnType<typeof generateTest>>;
+    try {
+      test = await generateTest(chapterId, 10, 600);
+    } catch {
+      alert('No questions available for this chapter yet.');
+      return;
+    }
+    setActiveTest(test);
     setAnswers({});
     setCurrentIdx(0);
     setTimeLeft(test.timeLimit);
@@ -26,7 +35,7 @@ export default function MockTests() {
 
     timerRef.current = setInterval(() => {
       setTimeLeft(t => {
-        if (t <= 1) { clearInterval(timerRef.current!); submitTest({ ...test, key: testKey }, {}); return 0; }
+        if (t <= 1) { clearInterval(timerRef.current!); submitTest(test, {}); return 0; }
         return t - 1;
       });
     }, 1000);
@@ -76,16 +85,18 @@ export default function MockTests() {
       <h2 style={{ fontSize: 20, fontWeight: 800, marginBottom: 20 }}>📝 Mock Exam Center</h2>
 
       {screen === 'select' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
-          {Object.entries(MOCK_TESTS_DATA).map(([key, test]: [string, any]) => (
-            <div key={key} className="glass-panel" style={{ padding: 20 }}>
-              <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 6, background: test.subject === 'science' ? 'rgba(59,130,246,0.15)' : 'rgba(168,85,247,0.15)', color: test.subject === 'science' ? 'var(--accent-blue)' : 'var(--accent-purple)' }}>{test.subject}</span>
-                <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 6, background: 'rgba(255,255,255,0.05)', color: 'var(--text-muted)' }}>{test.questions.length} Questions</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {subjects.map(s => (
+            <div key={s.id}>
+              <h3 style={{ fontWeight: 700, marginBottom: 10 }}>{s.name}</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12 }}>
+                {s.chapters.map(c => (
+                  <div key={c.id} className="glass-panel" style={{ padding: 16 }}>
+                    <h4 style={{ fontWeight: 700, marginBottom: 8 }}>{c.name}</h4>
+                    <button className="primary-btn" onClick={() => startTest(c.id)} style={{ width: '100%' }}>Launch Exam</button>
+                  </div>
+                ))}
               </div>
-              <h3 style={{ fontWeight: 700, marginBottom: 8 }}>{test.title}</h3>
-              <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 16 }}>Time: {test.timeLimit / 60} minutes. CBSE-aligned questions.</p>
-              <button className="primary-btn" onClick={() => startTest(key)} style={{ width: '100%' }}>Launch Exam</button>
             </div>
           ))}
         </div>

@@ -6,7 +6,7 @@ const gemini = process.env.GEMINI_API_KEY
   ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
   : null;
 
-const MODEL = 'gemini-1.5-flash'; // fast + free tier available
+const MODEL = 'gemini-2.0-flash'; // fast + free tier available
 
 export interface TutorResponse {
   text: string;
@@ -213,4 +213,70 @@ function getMockGeneratedQuestions(subject: string, chapter: string, topic: stri
   }));
 
   return { questions, title: `${chapter} — ${topic || 'General'} (${type.toUpperCase()})` };
+}
+
+// ─── CLASS 11 BANK GENERATION ──────────────────────────────────────────────────
+export interface BankQuestionRaw {
+  type: 'MCQ' | 'NUMERICAL' | 'ASSERTION_REASON';
+  difficulty: 'EASY' | 'MEDIUM' | 'HARD';
+  question: string;
+  options?: string[];
+  correctAnswer: number;
+  explanation: string;
+}
+
+function extractJson(raw: string): any {
+  const cleaned = raw.replace(/```json|```/g, '').trim();
+  return JSON.parse(cleaned);
+}
+
+export async function generateClass11Questions(params: {
+  subjectName: string;
+  chapterName: string;
+  topic: string;
+  difficulty: 'EASY' | 'MEDIUM' | 'HARD';
+  count: number;
+}): Promise<BankQuestionRaw[]> {
+  if (!gemini) throw new Error('GEMINI_API_KEY is required to generate questions');
+
+  const { subjectName, chapterName, topic, difficulty, count } = params;
+  const prompt = `You are a CBSE Class 11 ${subjectName} exam question setter.
+Generate ${count} ${difficulty} difficulty questions on:
+Chapter: ${chapterName}
+Topic: ${topic}
+
+Return raw JSON only (no markdown). Shape:
+{
+  "questions": [
+    {
+      "type": "MCQ" | "NUMERICAL" | "ASSERTION_REASON",
+      "difficulty": "${difficulty}",
+      "question": "question text (use plain text; LaTeX allowed inside $...$)",
+      "options": ["A", "B", "C", "D"],   // omit for NUMERICAL
+      "correctAnswer": 0,                  // option index for MCQ/ASSERTION_REASON; numeric value for NUMERICAL
+      "explanation": "step-by-step worked solution"
+    }
+  ]
+}
+For ASSERTION_REASON, format question as "Assertion (A): ...\\nReason (R): ..." with the four standard options.`;
+
+  const parsed = extractJson(await geminiCall(prompt));
+  return parsed.questions as BankQuestionRaw[];
+}
+
+// Re-solves a question; returns the answer the model arrives at independently.
+export async function verifyAnswer(q: BankQuestionRaw): Promise<number> {
+  if (!gemini) throw new Error('GEMINI_API_KEY is required to verify questions');
+
+  const optionsBlock = q.options
+    ? `Options:\n${q.options.map((o, i) => `${i}. ${o}`).join('\n')}\nReturn the index of the correct option.`
+    : 'Return the correct numeric value.';
+
+  const prompt = `Solve this CBSE Class 11 question. ${optionsBlock}
+Question: ${q.question}
+
+Return raw JSON only: { "answer": <number> }`;
+
+  const parsed = extractJson(await geminiCall(prompt));
+  return Number(parsed.answer);
 }
