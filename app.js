@@ -615,6 +615,8 @@ function renderTutorSidebar() {
 function selectChapter(subject, chapterId) {
   state.tutor.currentSubject = subject;
   state.tutor.currentChapter = chapterId;
+  state.tutor.activeQuiz = null;
+  state.tutor.activeTopic = null;
   
   // Re-highlight button
   document.querySelectorAll('.chapter-selector-btn').forEach(btn => {
@@ -3341,31 +3343,45 @@ function initLoginScreen() {
     }
   });
 
+  // --- Session Cleanup Helper ---
+  function resetSessionState() {
+    state.auth.sessionActive = false;
+    state.tutor.activeQuiz = null;
+    state.tutor.activeTopic = null;
+    state.tutor.chatHistory = [
+      { sender: 'bot', text: CHAT_BOT_RESPONSES.greeting, suggestions: ["Ohm's Law 💡", "Balance Equations 🔬", "Quadratic Formula 📐", "Explain Prism 🌈"] }
+    ];
+    
+    const loginScreen = document.getElementById('loginScreen');
+    const appShell = document.getElementById('appShell');
+    
+    if (loginScreen) {
+      loginScreen.style.display = 'flex';
+      
+      // Restore standard panels/tabs
+      document.querySelector('.auth-tabs').style.display = 'flex';
+      document.querySelector('.sso-divider').style.display = 'flex';
+      document.querySelector('.sso-buttons').style.display = 'grid';
+      if (typeof loginForm !== 'undefined' && loginForm) {
+        loginForm.style.display = 'flex';
+      } else {
+        const lf = document.getElementById('form-login-panel');
+        if (lf) lf.style.display = 'flex';
+      }
+      
+      // Remove 2FA OTP if present
+      const otpForm = document.getElementById('form-otp-panel');
+      if (otpForm) otpForm.remove();
+    }
+    
+    if (appShell) appShell.style.display = 'none';
+  }
+
   // --- Sign Out Button Action ---
   const logoutBtn = document.getElementById('logoutBtn');
   if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
-      state.auth.sessionActive = false;
-      
-      const loginScreen = document.getElementById('loginScreen');
-      const appShell = document.getElementById('appShell');
-      
-      if (loginScreen) {
-        loginScreen.style.display = 'flex';
-        
-        // Restore standard panels/tabs
-        document.querySelector('.auth-tabs').style.display = 'flex';
-        document.querySelector('.sso-divider').style.display = 'flex';
-        document.querySelector('.sso-buttons').style.display = 'grid';
-        loginForm.style.display = 'flex';
-        
-        // Remove 2FA OTP if present
-        const otpForm = document.getElementById('form-otp-panel');
-        if (otpForm) otpForm.remove();
-      }
-      
-      if (appShell) appShell.style.display = 'none';
-      
+      resetSessionState();
       showToast("Signed out successfully.", "success");
       logAudit('LOGOUT_MANUAL', 'User manually logged out of workspace.');
     });
@@ -3400,27 +3416,7 @@ function initLoginScreen() {
 
       // Auto-logout after 30 minutes of idle time.
       if (state.auth.inactivitySeconds >= inactivityLogoutSeconds) {
-        state.auth.sessionActive = false;
-        
-        // Hide dashboard panels, redirect back to Login Landing page
-        const loginScreen = document.getElementById('loginScreen');
-        const appShell = document.getElementById('appShell');
-        
-        if (loginScreen) {
-          loginScreen.style.display = 'flex';
-          
-          // Re-enable form buttons
-          document.querySelector('.auth-tabs').style.display = 'flex';
-          document.querySelector('.sso-divider').style.display = 'flex';
-          document.querySelector('.sso-buttons').style.display = 'grid';
-          loginForm.style.display = 'flex';
-          
-          const otpForm = document.getElementById('form-otp-panel');
-          if (otpForm) otpForm.remove();
-        }
-        
-        if (appShell) appShell.style.display = 'none';
-
+        resetSessionState();
         showToast("Logged out automatically due to inactivity.", "error");
         logAudit('LOGOUT_AUTO', 'Session expired. Automatic logout executed due to 30m inactivity.');
       }
